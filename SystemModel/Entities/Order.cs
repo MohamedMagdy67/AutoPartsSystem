@@ -15,6 +15,7 @@ namespace Model.Entities
         public string CustomerName { get; set; }
         [Required]
         public int ProductID { get; set; }
+        public int UserID { get; set; }
 
         #region Navigational Properties
         public virtual Product Product { get; set; }

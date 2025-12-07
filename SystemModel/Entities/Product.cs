@@ -9,6 +9,7 @@ namespace Model.Entities
         public string Name { get; set; }
         public int stock { get; set; }
         public int ProductTypeID { get; set; }
+        public int UserID { get; set; }
 
         #region Navigational Properties
         public virtual ProductType ProductType { get; set; }

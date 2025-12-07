@@ -102,6 +102,39 @@ namespace AutoPartsControllers.Controllers
 
             return Ok(response);
         }
+        [Authorize]
+        [HttpDelete]
+        public ActionResult DeleteUser()
+        {
+            int UserID = int.Parse(User.Claims.FirstOrDefault(c => c.Type == "userID").Value);
+            User u = _context.Users.Include(u => u.Categories).Include(u => u.ProductTypes).Include(u => u.Products).Include(u => u.Expenses).Include(u => u.Cars)
+                .Include(u => u.Orders)
+                .FirstOrDefault(u => u.ID == UserID);
+            var o = u.Orders.ToList();
+            _context.Orders.RemoveRange(o);
+            _context.SaveChanges();  
+            var E = u.Expenses.ToList();
+            _context.Expenses.RemoveRange(E);
+            _context.SaveChanges(); 
+            
+            var P = _context.Products.Include(P => P.ProductCars).Where(p => p.UserID == UserID).ToList();
+            foreach (Product p in P)
+            {
+                var PC = _context.ProductCars.Where(PC => p.ProductCars.Contains(PC)).ToList();
+                _context.ProductCars.RemoveRange(PC);
+                _context.SaveChanges();
+
+            }
+            var cars = _context.Cars.Where(c => c.UserID == UserID).ToList();
+            _context.Cars.RemoveRange(cars);
+            _context.SaveChanges();
+            var c = u.Categories.ToList();
+            _context.Categories.RemoveRange(c);
+            _context.SaveChanges();
+            _context.Users.Remove(u);
+            _context.SaveChanges();
+            return Ok("The user has been deleted successfully");
+        }
     }
 
 

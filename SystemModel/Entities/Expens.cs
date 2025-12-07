@@ -12,6 +12,7 @@ namespace Model.Entities
         public string Message { get; set; }
         [Required]
         public DateTime Date { get; set; }
+        public int UserID { get; set; }
         #region Navigitional Properties
         public virtual User User { get; set; }
         #endregion
