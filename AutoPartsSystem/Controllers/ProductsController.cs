@@ -81,7 +81,7 @@ namespace AutoPartsSystem.Controllers
             {
                 Name = dto.Name,
                 stock = dto.stock,
-                ProductTypeID = dProductTypeID,
+                ProductTypeID = ProductTypeID,
                 UserID = userID
             };
 
@@ -123,7 +123,7 @@ namespace AutoPartsSystem.Controllers
         //public ActionResult PutProduct([FromRoute]int ProductID, [FromBody] ProductDTO dto)
         //{
 
-
+        
         //}
         [Authorize]
         [HttpDelete("{ProductID}")]
