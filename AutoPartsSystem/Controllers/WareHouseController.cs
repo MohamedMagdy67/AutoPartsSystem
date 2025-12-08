@@ -12,7 +12,7 @@ namespace AutoPartsSystem.Controllers
     [ApiController]
     public class WareHouseController : ControllerBase
     {
-        public readonly AutoPartsSystemDB _context;
+        private readonly AutoPartsSystemDB _context;
         public WareHouseController(AutoPartsSystemDB context)
         {
             _context = context;
