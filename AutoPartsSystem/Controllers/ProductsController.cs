@@ -119,12 +119,96 @@ namespace AutoPartsSystem.Controllers
 
             });
         }
-        //[HttpPut("ProductID")]
-        //public ActionResult PutProduct([FromRoute]int ProductID, [FromBody] ProductDTO dto)
-        //{
+        [Authorize]
+        [HttpPut("{ProductID}")]
+        public ActionResult PutProduct([FromRoute] int ProductID, [FromBody] ProductDTO dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Name) ||
+                string.IsNullOrWhiteSpace(dto.CarModel) ||
+                dto.stock < 0)
+            {
+                return BadRequest("Invalid product data");
+            }
 
-        
-        //}
+            int userID = int.Parse(User.Claims.First(c => c.Type == "userID").Value);
+
+            var product = _context.Products
+                .Include(p => p.ProductCars)
+                    .ThenInclude(pc => pc.Car)
+                .FirstOrDefault(p => p.ID == ProductID && p.UserID == userID);
+
+            if (product == null)
+                return NotFound("Product not found");
+
+            // ==========================
+            // Parse requested car models
+            // ==========================
+            var requestedModels = dto.CarModel
+                .Split(",", StringSplitOptions.RemoveEmptyEntries)
+                .Select(m => m.Trim())
+                .OrderBy(m => m)
+                .ToList();
+
+            // ==========================
+            // 1) Update main product data
+            // ==========================
+            product.Name = dto.Name;
+            product.stock = dto.stock;
+
+            // ==========================
+            // 2) Remove old ProductCars relations
+            // ==========================
+            var oldCarLinks = product.ProductCars.ToList();
+            _context.ProductCars.RemoveRange(oldCarLinks);
+
+            // ==========================
+            // 3) Delete old cars (only if not used by other products)
+            // ==========================
+            foreach (var oldCar in oldCarLinks.Select(pc => pc.Car).Distinct())
+            {
+                bool usedByOthers = _context.ProductCars.Any(pc => pc.CarID == oldCar.ID && pc.ProductID != product.ID);
+
+                if (!usedByOthers)
+                    _context.Cars.Remove(oldCar);
+            }
+
+            _context.SaveChanges();
+
+            // ==========================
+            // 4) Recreate new ProductCars relations
+            // ==========================
+            var allUserCars = _context.Cars.Where(c => c.UserID == userID).ToList();
+
+            foreach (var model in requestedModels)
+            {
+                var car = allUserCars.FirstOrDefault(c => c.Model == model);
+
+
+                if (car == null)
+                {
+                    car = new Car { Model = model, UserID = userID };
+                    _context.Cars.Add(car);
+                    _context.SaveChanges();
+                }
+
+                _context.ProductCars.Add(new ProductCar
+                {
+                    ProductID = product.ID,
+                    CarID = car.ID
+                });
+            }
+
+            _context.SaveChanges();
+
+            return Ok(new
+            {
+                product.ID,
+                product.Name,
+                product.stock,
+                Models = requestedModels
+            });
+        }
+
         [Authorize]
         [HttpDelete("{ProductID}")]
         public ActionResult DeleteProduct([FromRoute] int ProductID)
