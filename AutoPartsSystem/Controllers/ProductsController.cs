@@ -1,6 +1,5 @@
 ﻿using DTOsLayer.ProductDtos;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Model.Entities;
@@ -13,13 +12,18 @@ namespace AutoPartsSystem.Controllers
     public class ProductsController : ControllerBase
     {
         public readonly AutoPartsSystemDB _context;
+
         public ProductsController(AutoPartsSystemDB context)
         {
             _context = context;
         }
+
+        // ==========================================================
+        // GET PRODUCTS
+        // ==========================================================
         [Authorize]
         [HttpGet("{ProductTypeID}")]
-        public ActionResult GetProducts([FromRoute] int ProductTypeID)
+        public ActionResult GetProducts(int ProductTypeID)
         {
             int userID = int.Parse(User.Claims.First(c => c.Type == "userID").Value);
 
@@ -27,14 +31,18 @@ namespace AutoPartsSystem.Controllers
                 .Where(p => p.ProductTypeID == ProductTypeID && p.UserID == userID)
                 .ToList();
 
-            if (products.Count == 0)
+            if (!products.Any())
                 return NotFound("No products exist");
 
             return Ok(products);
         }
+
+        // ==========================================================
+        // ADD PRODUCT
+        // ==========================================================
         [Authorize]
         [HttpPost("{ProductTypeID}")]
-        public ActionResult AddProduct([FromRoute] int ProductTypeID, [FromBody] ProductDTO dto)
+        public ActionResult AddProduct(int ProductTypeID, [FromBody] ProductDTO dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Name) ||
                 string.IsNullOrWhiteSpace(dto.CarModel) ||
@@ -77,6 +85,7 @@ namespace AutoPartsSystem.Controllers
                 }
             }
 
+            // Create new product
             var newProduct = new Product
             {
                 Name = dto.Name,
@@ -88,6 +97,7 @@ namespace AutoPartsSystem.Controllers
             _context.Products.Add(newProduct);
             _context.SaveChanges();
 
+            // create car relations
             var allUserCars = _context.Cars.Where(c => c.UserID == userID).ToList();
 
             foreach (var model in requestedModels)
@@ -109,19 +119,16 @@ namespace AutoPartsSystem.Controllers
             }
 
             _context.SaveChanges();
-
-            return Ok(new
-            {
-                newProduct.ID,
-                newProduct.Name,
-                newProduct.stock,
-                newProduct.ProductTypeID
-
-            });
+            ProductDTO pp = new ProductDTO() { Name = newProduct.Name, stock = newProduct.stock, CarModel = dto.CarModel };
+            return Ok(pp);
         }
+
+        // ==========================================================
+        // UPDATE PRODUCT
+        // ==========================================================
         [Authorize]
         [HttpPut("{ProductID}")]
-        public ActionResult PutProduct([FromRoute] int ProductID, [FromBody] ProductDTO dto)
+        public ActionResult PutProduct(int ProductID, [FromBody] ProductDTO dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Name) ||
                 string.IsNullOrWhiteSpace(dto.CarModel) ||
@@ -140,49 +147,35 @@ namespace AutoPartsSystem.Controllers
             if (product == null)
                 return NotFound("Product not found");
 
-            // ==========================
-            // Parse requested car models
-            // ==========================
             var requestedModels = dto.CarModel
                 .Split(",", StringSplitOptions.RemoveEmptyEntries)
                 .Select(m => m.Trim())
                 .OrderBy(m => m)
                 .ToList();
 
-            // ==========================
-            // 1) Update main product data
-            // ==========================
             product.Name = dto.Name;
             product.stock = dto.stock;
 
-            // ==========================
-            // 2) Remove old ProductCars relations
-            // ==========================
-            var oldCarLinks = product.ProductCars.ToList();
-            _context.ProductCars.RemoveRange(oldCarLinks);
+            var oldLinks = product.ProductCars.ToList();
+            var oldCars = oldLinks.Select(pc => pc.Car).Distinct().ToList();
 
-            // ==========================
-            // 3) Delete old cars (only if not used by other products)
-            // ==========================
-            foreach (var oldCar in oldCarLinks.Select(pc => pc.Car).Distinct())
+            _context.ProductCars.RemoveRange(oldLinks);
+
+            // delete cars only if unused
+            foreach (var car in oldCars)
             {
-                bool usedByOthers = _context.ProductCars.Any(pc => pc.CarID == oldCar.ID && pc.ProductID != product.ID);
-
-                if (!usedByOthers)
-                    _context.Cars.Remove(oldCar);
+                bool used = _context.ProductCars.Any(pc => pc.CarID == car.ID && pc.ProductID != product.ID);
+                if (!used)
+                    _context.Cars.Remove(car);
             }
 
             _context.SaveChanges();
 
-            // ==========================
-            // 4) Recreate new ProductCars relations
-            // ==========================
             var allUserCars = _context.Cars.Where(c => c.UserID == userID).ToList();
 
             foreach (var model in requestedModels)
             {
                 var car = allUserCars.FirstOrDefault(c => c.Model == model);
-
 
                 if (car == null)
                 {
@@ -200,64 +193,48 @@ namespace AutoPartsSystem.Controllers
 
             _context.SaveChanges();
 
-            return Ok(new
-            {
-                product.ID,
-                product.Name,
-                product.stock,
-                Models = requestedModels
-            });
+            return Ok(product);
         }
 
+        // ==========================================================
+        // DELETE PRODUCT
+        // ==========================================================
         [Authorize]
         [HttpDelete("{ProductID}")]
-        public ActionResult DeleteProduct([FromRoute] int ProductID)
+        public ActionResult DeleteProduct(int ProductID)
         {
             int userID = int.Parse(User.Claims.First(c => c.Type == "userID").Value);
 
-
-            var Product = _context.Products
-               .Include(p => p.Orders) // Include Orders from Products
+            var product = _context.Products
+               .Include(p => p.Orders)
                .Include(p => p.ProductCars)
-                    .ThenInclude(pc => pc.Car) // Include Cars via ProductCars
-               .FirstOrDefault(P => P.ID == ProductID && P.UserID == userID);
+                    .ThenInclude(pc => pc.Car)
+               .FirstOrDefault(p => p.ID == ProductID && p.UserID == userID);
 
-            if (Product == null)
+            if (product == null)
                 return NotFound("Product not found");
 
-            // ===========================
-            // 1) Delete Orders
-            // ===========================
-            var orders = Product.Orders
-                .ToList();
-            _context.Orders.RemoveRange(orders);
+            // 1) delete orders
+            _context.Orders.RemoveRange(product.Orders);
 
-            // ===========================
-            // 2) Delete ProductCars
-            // ===========================
-            var productCars = Product.ProductCars
-                .ToList();
-            _context.ProductCars.RemoveRange(productCars);
+            // 2) delete productCars
+            var carLinks = product.ProductCars.ToList();
+            _context.ProductCars.RemoveRange(carLinks);
 
-            // ===========================
-            // 2.5) Delete Cars
-            // ===========================
-            var cars = productCars
-                .Select(pc => pc.Car)
-                .Where(c => c != null)
-                .Distinct()
-                .ToList();
-            _context.Cars.RemoveRange(cars);
+            // 3) delete cars ONLY if unused by other products
+            foreach (var car in carLinks.Select(pc => pc.Car).Distinct())
+            {
+                bool usedByOthers = _context.ProductCars.Any(pc => pc.CarID == car.ID);
+                if (!usedByOthers)
+                    _context.Cars.Remove(car);
+            }
 
-            // ===========================
-            // 3) Delete Products
-            // ===========================
-            _context.Products.Remove(Product);
+            // 4) delete product
+            _context.Products.Remove(product);
+
             _context.SaveChanges();
 
-            return Ok("Product and all related data deleted successfully");
-
+            return Ok("Product deleted successfully");
         }
-
     }
 }

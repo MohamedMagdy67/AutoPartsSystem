@@ -1,6 +1,5 @@
 ﻿using DTOsLayer.ProfitDtos;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SystemContext;
 
@@ -10,32 +9,65 @@ namespace AutoPartsSystem.Controllers
     [ApiController]
     public class ProfitController : ControllerBase
     {
-        private AutoPartsSystemDB _context;
-        public ProfitController(AutoPartsSystemDB context) 
+        private readonly AutoPartsSystemDB _context;
+
+        public ProfitController(AutoPartsSystemDB context)
         {
             _context = context;
         }
 
         [Authorize]
-        [HttpGet("{day}")]
-        public ActionResult GetProfitDay([FromQuery]int day)
+        [HttpGet("day")]
+        public ActionResult GetProfitDay([FromQuery] int day, [FromQuery] int Month, [FromQuery] int Year)
         {
-            int UserID = int.Parse(User.Claims.FirstOrDefault(c => c.Type == "userID").Value);
-            var Orders = _context.Orders.Where(O => O.UserID == UserID && O.Date.Day == day).Sum(O => O.Price);
-            var Expenses = _context.Expenses.Where(E => E.UserID == UserID && E.Date.Day == day).Sum(E => E.Amount);
-            ProfitDTO p = new ProfitDTO() { Orders = Orders, Expenses = Expenses, Sum = Orders - Expenses };
-            if (Orders == null && Expenses == null) { return NotFound("No Expenses And Orders In This Day"); }
+            int userID = int.Parse(User.Claims.First(c => c.Type == "userID").Value);
+
+            var orders = _context.Orders
+                .Where(o => o.UserID == userID && o.Date.Day == day && o.Date.Month == Month && o.Date.Year == Year)
+                .Sum(o => o.Price);
+
+            var expenses = _context.Expenses
+                .Where(e => e.UserID == userID && e.Date.Day == day && e.Date.Month == Month && e.Date.Year == Year)
+                .Sum(e => e.Amount);
+
+            if (orders == 0 && expenses == 0)
+                return NotFound("No Expenses And Orders In This Day");
+
+            var p = new ProfitDTO()
+            {
+                Orders = orders,
+                Expenses = expenses,
+                Sum = orders - expenses
+            };
+
             return Ok(p);
         }
+
         [Authorize]
-        [HttpGet("{Month}")]
-        public ActionResult GetProfitMonth([FromQuery] int Month)
+        [HttpGet("month")]
+        public ActionResult GetProfitMonth([FromQuery] int month, [FromQuery] int year)
+
         {
-            int UserID = int.Parse(User.Claims.FirstOrDefault(c => c.Type == "userID").Value);
-            var Orders = _context.Orders.Where(O => O.UserID == UserID && O.Date.Month == Month).Sum(O => O.Price);
-            var Expenses = _context.Expenses.Where(E => E.UserID == UserID && E.Date.Month == Month).Sum(E => E.Amount);
-            ProfitDTO p = new ProfitDTO() { Orders = Orders, Expenses = Expenses, Sum = Orders - Expenses };
-            if (Orders == null && Expenses == null) { return NotFound("No Expenses And Orders In This Month"); }
+            int userID = int.Parse(User.Claims.First(c => c.Type == "userID").Value);
+
+            var orders = _context.Orders
+                .Where(o => o.UserID == userID && o.Date.Month == month  && o.Date.Year == year)
+                .Sum(o => o.Price);
+
+            var expenses = _context.Expenses
+                .Where(e => e.UserID == userID && e.Date.Month == month  && e.Date.Year == year)
+                .Sum(e => e.Amount);
+
+            if (orders == 0 && expenses == 0)
+                return NotFound("No Expenses And Orders In This Month");
+
+            var p = new ProfitDTO()
+            {
+                Orders = orders,
+                Expenses = expenses,
+                Sum = orders - expenses
+            };
+
             return Ok(p);
         }
     }

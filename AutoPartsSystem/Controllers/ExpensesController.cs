@@ -1,9 +1,8 @@
 ﻿using DTOsLayer.ExpensesDtos;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration.UserSecrets;
 using Model.Entities;
+using System.Linq;
 using SystemContext;
 
 namespace AutoPartsSystem.Controllers
@@ -13,59 +12,108 @@ namespace AutoPartsSystem.Controllers
     public class ExpensesController : ControllerBase
     {
         private readonly AutoPartsSystemDB _context;
-        public ExpensesController(AutoPartsSystemDB context)
+
+    public ExpensesController(AutoPartsSystemDB context)
         {
             _context = context;
         }
+
+        // ====================== GET ALL EXPENSES ======================
         [Authorize]
         [HttpGet]
         public ActionResult GetExpenses()
         {
-            int UserID = int.Parse(User.Claims.FirstOrDefault(c => c.Type == "userID").Value);
-            Expens test = _context.Expenses.FirstOrDefault(e => e.UserID == UserID);
-            if (test == null) { return NotFound("No Expenses Exist"); }
-            var Expenses = _context.Expenses.Where(E => E.UserID == UserID);
-            return Ok(Expenses);
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userID");
+            if (userIdClaim == null)
+                return Unauthorized("UserID claim not found");
 
+            int userID = int.Parse(userIdClaim.Value);
+
+            var test = _context.Expenses.Where(t => t.UserID == userID).Select(e => e.ID);
+            if (test == null ) { return NotFound("You Have No Expenses"); }
+            var Expenses = _context.Expenses.Where(e => e.UserID == userID);
+            if (!Expenses.Any()) { return NotFound("You Have No Expenses"); }
+            var ee = Expenses.ToList();
+            return Ok(ee);
         }
+
+        // ====================== CREATE EXPENSE ======================
         [Authorize]
         [HttpPost]
-        public ActionResult PostExpenses([FromBody]ExpensDTO Expens)
+        public ActionResult PostExpense([FromBody] ExpensDTO expenseDTO)
         {
-            int UserID = int.Parse(User.Claims.FirstOrDefault(c => c.Type == "userID").Value);
-            if (Expens.Name == null || Expens.Amount == null || Expens.Date == null) { return NotFound("Invalid Expens"); }
-            Expens e = new Expens() { Name = Expens.Name, Amount = (decimal)Expens.Amount, Date = (DateTime)Expens.Date, UserID = UserID };
-            if (Expens.Message != null) { e.Message = Expens.Message; }
-            _context.Expenses.Add(e);
-            _context.SaveChanges();
-            return Ok(e);
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userID");
+            if (userIdClaim == null)
+                return Unauthorized("UserID claim not found");
 
+            int userID = int.Parse(userIdClaim.Value);
+
+            if (expenseDTO == null || string.IsNullOrWhiteSpace(expenseDTO.Name) || expenseDTO.Amount == null || expenseDTO.Date == null)
+                return BadRequest("Invalid expense data");
+
+            var expense = new Expens
+            {
+                Name = expenseDTO.Name,
+                Amount = expenseDTO.Amount.Value,
+                Date = expenseDTO.Date.Value,
+                UserID = userID,
+                Message = expenseDTO.Message
+            };
+
+            _context.Expenses.Add(expense);
+            _context.SaveChanges();
+
+            return Ok(expense);
         }
+
+        // ====================== UPDATE EXPENSE ======================
         [Authorize]
         [HttpPut("{id}")]
-        public ActionResult PutExpenses([FromRoute]int id, [FromBody]ExpensDTO Expens)
+        public ActionResult PutExpense([FromRoute] int id, [FromBody] ExpensDTO expenseDTO)
         {
-            if (Expens.Name == null || Expens.Amount == null || Expens.Date == null) { return NotFound("Invalid Expens"); }
-            int UserID = int.Parse(User.Claims.FirstOrDefault(c => c.Type == "userID").Value);
-            Expens e = _context.Expenses.FirstOrDefault(E => E.ID == id && E.UserID == UserID);
-            if (e == null) { return NotFound("Expens Not Exist"); }
-            if (Expens.Name != null) { e.Name = Expens.Name; }
-            if (Expens.Amount != null) { e.Amount = (decimal)Expens.Amount; }
-            if (Expens.Date != null) { e.Date = (DateTime)Expens.Date; }
-            if (Expens.Message != null) { e.Message = Expens.Message; }
-; _context.SaveChanges();
-            return Ok(e);
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userID");
+            if (userIdClaim == null)
+                return Unauthorized("UserID claim not found");
+
+            int userID = int.Parse(userIdClaim.Value);
+
+            if (expenseDTO == null || string.IsNullOrWhiteSpace(expenseDTO.Name) || expenseDTO.Amount == null || expenseDTO.Date == null)
+                return BadRequest("Invalid expense data");
+
+            var expense = _context.Expenses.FirstOrDefault(e => e.ID == id && e.UserID == userID);
+            if (expense == null)
+                return NotFound("Expense not found");
+
+            expense.Name = expenseDTO.Name;
+            expense.Amount = expenseDTO.Amount.Value;
+            expense.Date = expenseDTO.Date.Value;
+            expense.Message = expenseDTO.Message;
+
+            _context.SaveChanges();
+
+            return Ok(expense);
         }
+
+        // ====================== DELETE EXPENSE ======================
         [Authorize]
         [HttpDelete("{id}")]
-        public ActionResult DeleteExpenses([FromRoute]int id)
+        public ActionResult DeleteExpense([FromRoute] int id)
         {
-            int UserID = int.Parse(User.Claims.FirstOrDefault(c => c.Type == "userID").Value);
-            Expens e = _context.Expenses.FirstOrDefault(E => E.ID == id && E.UserID == UserID);
-            if (e == null) {return NotFound("This Expens Is Not Exist");}
-            _context.Expenses.Remove(e);
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userID");
+            if (userIdClaim == null)
+                return Unauthorized("UserID claim not found");
+
+            int userID = int.Parse(userIdClaim.Value);
+
+            var expense = _context.Expenses.FirstOrDefault(e => e.ID == id && e.UserID == userID);
+            if (expense == null)
+                return NotFound("Expense not found");
+
+            _context.Expenses.Remove(expense);
             _context.SaveChanges();
-            return Ok("Deleted Succesfully");
+
+            return Ok("Expense deleted successfully");
         }
     }
+
 }

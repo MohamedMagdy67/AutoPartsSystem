@@ -24,11 +24,11 @@ namespace AutoPartsSystem.Controllers
             int UserID = int.Parse(User.Claims.FirstOrDefault(c => c.Type == "userID").Value);
             var Products = _context.Products.Where(p => p.UserID == UserID).Include(PT => PT.ProductType).ToList();
             List<WareHouseDTO> warehouse = new List<WareHouseDTO>();
-            if (Products == null) { return NotFound("No Products Exist"); }
+            if (!Products.Any()) { return NotFound("No Products Exist"); }
             foreach(var p in Products)
             {
                 WareHouseDTO w = new WareHouseDTO()
-                { ProductName = p.Name , ProductID = p.ID , ProductTypeName = p.ProductType.Name};
+                { ProductName = p.Name , ProductID = p.ID , ProductTypeName = p.ProductType.Name , StockOfProduct = p.stock};
                 warehouse.Add(w);
             }
             return Ok(warehouse);

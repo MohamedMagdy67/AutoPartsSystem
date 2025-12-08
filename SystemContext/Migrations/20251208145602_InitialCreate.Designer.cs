@@ -12,7 +12,7 @@ using SystemContext;
 namespace SystemContext.Migrations
 {
     [DbContext(typeof(AutoPartsSystemDB))]
-    [Migration("20251204143319_InitialCreate")]
+    [Migration("20251208145602_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

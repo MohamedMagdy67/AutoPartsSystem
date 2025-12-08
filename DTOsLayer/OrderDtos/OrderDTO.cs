@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace DTOsLayer.OrderDtos
 {
     public class OrderDTO
-    {
+    {       
         public decimal price { get; set; }
         public int Quantity { get; set; }
     }
