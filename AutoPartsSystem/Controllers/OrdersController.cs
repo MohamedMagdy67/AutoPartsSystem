@@ -46,7 +46,7 @@ namespace AutoPartsSystem.Controllers
         [HttpPut("{OrderID}")]
         public ActionResult PutOrders([FromBody] OrderDTO order,[FromRoute]int OrderID)
         {
-            if (order.Quantity <= 0 || order.price <= 0 || OrderID <= 0 ) { return BadRequest("Invalid Order")};
+            if (order.Quantity <= 0 || order.price <= 0 || OrderID <= 0 ) { return BadRequest("Invalid Order"); }
             int UserID = int.Parse(User.Claims.FirstOrDefault(c => c.Type == "userID").Value);
             Order o = _context.Orders.FirstOrDefault(o => o.ID == OrderID && o.UserID == UserID);
             Product p = _context.Products.FirstOrDefault(p => p.ID == o.ProductID && p.UserID == UserID);
