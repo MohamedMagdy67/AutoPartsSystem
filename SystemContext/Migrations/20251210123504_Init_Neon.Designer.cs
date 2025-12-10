@@ -2,9 +2,9 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SystemContext;
 
 #nullable disable
@@ -12,33 +12,33 @@ using SystemContext;
 namespace SystemContext.Migrations
 {
     [DbContext(typeof(AutoPartsSystemDB))]
-    [Migration("20251208145602_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251210123504_Init_Neon")]
+    partial class Init_Neon
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.0")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+                .HasAnnotation("ProductVersion", "6.0.12")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Model.Entities.Car", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"), 1L, 1);
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
 
                     b.Property<string>("Model")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int>("UserID")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("ID");
 
@@ -51,17 +51,17 @@ namespace SystemContext.Migrations
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"), 1L, 1);
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int>("UserID")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("ID");
 
@@ -74,27 +74,27 @@ namespace SystemContext.Migrations
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"), 1L, 1);
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Message")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int>("UserID")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("ID");
 
@@ -107,28 +107,28 @@ namespace SystemContext.Migrations
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"), 1L, 1);
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
 
                     b.Property<string>("CustomerName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<int>("ProductID")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<int>("Quantity")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<int>("UserID")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("ID");
 
@@ -143,23 +143,23 @@ namespace SystemContext.Migrations
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"), 1L, 1);
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int>("ProductTypeID")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<int>("UserID")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<int>("stock")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("ID");
 
@@ -173,10 +173,10 @@ namespace SystemContext.Migrations
             modelBuilder.Entity("Model.Entities.ProductCar", b =>
                 {
                     b.Property<int>("ProductID")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<int>("CarID")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("ProductID", "CarID");
 
@@ -189,20 +189,20 @@ namespace SystemContext.Migrations
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"), 1L, 1);
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
 
                     b.Property<int>("CategoryID")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int>("UserID")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("ID");
 
@@ -217,21 +217,21 @@ namespace SystemContext.Migrations
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"), 1L, 1);
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.HasKey("ID");
 

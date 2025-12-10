@@ -1,11 +1,12 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace SystemContext.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class Init_Neon : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -13,11 +14,11 @@ namespace SystemContext.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Email = table.Column<string>(type: "text", nullable: false),
+                    Password = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -28,10 +29,10 @@ namespace SystemContext.Migrations
                 name: "Cars",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Model = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    UserID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Model = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    UserID = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -48,10 +49,10 @@ namespace SystemContext.Migrations
                 name: "Categories",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    UserID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    UserID = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -68,13 +69,13 @@ namespace SystemContext.Migrations
                 name: "Expenses",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UserID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Amount = table.Column<decimal>(type: "numeric", nullable: false),
+                    Message = table.Column<string>(type: "text", nullable: false),
+                    Date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UserID = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -91,11 +92,11 @@ namespace SystemContext.Migrations
                 name: "ProductTypes",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    CategoryID = table.Column<int>(type: "int", nullable: false),
-                    UserID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    CategoryID = table.Column<int>(type: "integer", nullable: false),
+                    UserID = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -118,12 +119,12 @@ namespace SystemContext.Migrations
                 name: "Products",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    stock = table.Column<int>(type: "int", nullable: false),
-                    ProductTypeID = table.Column<int>(type: "int", nullable: false),
-                    UserID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    stock = table.Column<int>(type: "integer", nullable: false),
+                    ProductTypeID = table.Column<int>(type: "integer", nullable: false),
+                    UserID = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -146,14 +147,14 @@ namespace SystemContext.Migrations
                 name: "Orders",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Quantity = table.Column<int>(type: "int", nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CustomerName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ProductID = table.Column<int>(type: "int", nullable: false),
-                    UserID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Quantity = table.Column<int>(type: "integer", nullable: false),
+                    Price = table.Column<decimal>(type: "numeric", nullable: false),
+                    Date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CustomerName = table.Column<string>(type: "text", nullable: false),
+                    ProductID = table.Column<int>(type: "integer", nullable: false),
+                    UserID = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -176,8 +177,8 @@ namespace SystemContext.Migrations
                 name: "ProductCars",
                 columns: table => new
                 {
-                    ProductID = table.Column<int>(type: "int", nullable: false),
-                    CarID = table.Column<int>(type: "int", nullable: false)
+                    ProductID = table.Column<int>(type: "integer", nullable: false),
+                    CarID = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {

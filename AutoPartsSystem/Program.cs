@@ -4,45 +4,51 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using SystemContext;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// ===== 1️⃣ DbContext =====
-builder.Services.AddDbContext<AutoPartsSystemDB>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// ===== 2️⃣ JWT Authentication =====
-var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
-builder.Services.AddAuthentication(options =>
+internal class Program
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+    private static void Main(string[] args)
     {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = false,
-        ValidateAudience = false
-    };
-});
+        var builder = WebApplication.CreateBuilder(args);
 
-// ===== 3️⃣ Controllers & Swagger =====
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-    {
-        Description = "JWT Authorization header using the Bearer scheme. Example: 'Bearer {token}'",
-        Name = "Authorization",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
-        Scheme = "bearer"
-    });
+        // ===== 1️⃣ DbContext =====
+        builder.Services.AddDbContext<AutoPartsSystemDB>(options =>
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement{
+
+
+        // ===== 2️⃣ JWT Authentication =====
+        var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuer = false,
+                ValidateAudience = false
+            };
+        });
+
+        // ===== 3️⃣ Controllers & Swagger =====
+        builder.Services.AddControllers();
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Description = "JWT Authorization header using the Bearer scheme. Example: 'Bearer {token}'",
+                Name = "Authorization",
+                In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+                Scheme = "bearer"
+            });
+
+            c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement{
         {
             new Microsoft.OpenApi.Models.OpenApiSecurityScheme{
                 Reference = new Microsoft.OpenApi.Models.OpenApiReference{
@@ -52,21 +58,23 @@ builder.Services.AddSwaggerGen(c =>
             },
             new string[]{}
         }
-    });
-});
+            });
+        });
 
-var app = builder.Build();
+        var app = builder.Build();
 
-// ===== 4️⃣ Middleware =====
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+        // ===== 4️⃣ Middleware =====
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
+
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        app.MapControllers();
+
+        app.Run();
+    }
 }
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
