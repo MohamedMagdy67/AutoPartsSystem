@@ -6,10 +6,9 @@ using SystemContext;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ===== 1️⃣ DbContext مع MySQL =====
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+// ===== 1️⃣ DbContext =====
 builder.Services.AddDbContext<AutoPartsSystemDB>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // ===== 2️⃣ JWT Authentication =====
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
@@ -59,19 +58,15 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // ===== 4️⃣ Middleware =====
-app.UseSwagger();
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-// ===== 5️⃣ Migration تلقائي =====
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AutoPartsSystemDB>();
-    db.Database.Migrate();
-}
 
 app.Run();

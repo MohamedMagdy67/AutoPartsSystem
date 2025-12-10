@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Model.Entities;
-using SystemContext;
+using System.Collections.Generic;
+using System.Reflection.Emit;
 using SystemModel.Entities;
 
 namespace SystemContext
@@ -15,8 +16,8 @@ namespace SystemContext
 
             #region Category Information
             modelBuilder.Entity<Category>()
-                .HasOne(c => c.User)
-                .WithMany(u => u.Categories)
+                .HasOne(C => C.User)
+                .WithMany(U => U.Categories)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Category>()
@@ -32,8 +33,8 @@ namespace SystemContext
 
             #region ProductType Information
             modelBuilder.Entity<ProductType>()
-                .HasOne(pt => pt.User)
-                .WithMany(u => u.ProductTypes)
+                .HasOne(PT => PT.User)
+                .WithMany(U => U.ProductTypes)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ProductType>()
@@ -58,8 +59,8 @@ namespace SystemContext
 
             #region Product Information
             modelBuilder.Entity<Product>()
-                .HasOne(p => p.User)
-                .WithMany(u => u.Products)
+                .HasOne(P => P.User)
+                .WithMany(U => U.Products)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Product>()
@@ -89,8 +90,8 @@ namespace SystemContext
 
             #region Order Information
             modelBuilder.Entity<Order>()
-                .HasOne(o => o.User)
-                .WithMany(u => u.Orders)
+                .HasOne(O => O.User)
+                .WithMany(U => U.Orders)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Order>()
@@ -101,8 +102,8 @@ namespace SystemContext
 
             #region Car Information
             modelBuilder.Entity<Car>()
-                .HasOne(c => c.User)
-                .WithMany(u => u.Cars)
+                .HasOne(C => C.User)
+                .WithMany(U => U.Cars)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Car>()
@@ -135,12 +136,12 @@ namespace SystemContext
 
             #region Expense Information
             modelBuilder.Entity<Expens>()
-                .HasOne(e => e.User)
-                .WithMany(u => u.Expenses)
+                .HasOne(E => E.User)
+                .WithMany(U => U.Expenses)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Expens>()
-                .Property(e => e.Name)
+                .Property(E => E.Name)
                 .HasMaxLength(100);
             #endregion
         }
@@ -157,4 +158,3 @@ namespace SystemContext
         #endregion
     }
 }
-
