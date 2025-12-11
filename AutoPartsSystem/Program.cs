@@ -64,7 +64,8 @@ internal class Program
         var app = builder.Build();
 
         // ===== 4️⃣ Middleware =====
-        if (app.Environment.IsDevelopment())
+        // Swagger يعمل للـ Development والـ Production
+        if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
         {
             app.UseSwagger();
             app.UseSwaggerUI();
@@ -76,5 +77,6 @@ internal class Program
         app.MapControllers();
 
         app.Run();
+
     }
 }
